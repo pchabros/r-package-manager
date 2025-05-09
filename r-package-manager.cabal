@@ -27,6 +27,7 @@ common shared
     LambdaCase
     MultiWayIf
     NoStarIsType
+    OverloadedRecordDot
     OverloadedStrings
     StrictData
     TypeFamilies
@@ -41,6 +42,7 @@ common shared
     , filepath
     , mtl
     , optics-core
+    , optparse-applicative
     , profunctors
     , relude        >=1.0
     , shower
