@@ -1,6 +1,22 @@
 module Main where
 
-import Options.Applicative (CommandFields, Mod, Parser, ParserInfo, argument, command, execParser, fullDesc, header, helper, info, metavar, progDesc, str, subparser)
+import Options.Applicative (
+  CommandFields,
+  Mod,
+  Parser,
+  ParserInfo,
+  argument,
+  command,
+  execParser,
+  fullDesc,
+  header,
+  helper,
+  info,
+  metavar,
+  progDesc,
+  str,
+  subparser,
+ )
 
 newtype Opts = Opts {cmd :: Cmd}
 
