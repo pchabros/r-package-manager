@@ -22,6 +22,8 @@ common shared
 
   default-extensions:
     DataKinds
+    DeriveAnyClass
+    DeriveGeneric
     DerivingStrategies
     DerivingVia
     LambdaCase
@@ -35,6 +37,7 @@ common shared
 
   build-depends:
     , aeson
+    , aeson-pretty
     , async
     , base          >=4   && <5
     , data-default
