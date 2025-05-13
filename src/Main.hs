@@ -25,14 +25,17 @@ data Cmd = Init | Add [String] | Remove [String]
 initCmd :: Mod CommandFields Cmd
 initCmd = command "init" (info (pure Init) (progDesc "Init r-package-manager project"))
 
+packagesParser :: Parser [String]
+packagesParser = some (argument str (metavar "PACKAGES"))
+
 addOpts :: Parser Cmd
-addOpts = Add <$> some (argument str (metavar "PACKAGES"))
+addOpts = Add <$> packagesParser
 
 addCmd :: Mod CommandFields Cmd
 addCmd = command "add" (info addOpts (progDesc "Add R packages"))
 
 removeOpts :: Parser Cmd
-removeOpts = Remove <$> some (argument str (metavar "PACKAGES"))
+removeOpts = Remove <$> packagesParser
 
 removeCmd :: Mod CommandFields Cmd
 removeCmd = command "remove" (info removeOpts (progDesc "Remove R packages"))
