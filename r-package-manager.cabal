@@ -57,3 +57,5 @@ common shared
 executable r-package-manager
     import:           shared
     main-is:          Main.hs
+    other-modules:
+      , Cmd
