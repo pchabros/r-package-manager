@@ -59,3 +59,5 @@ executable r-package-manager
     main-is:          Main.hs
     other-modules:
       , Cmd
+      , Handle
+      , Manifest
