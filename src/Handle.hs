@@ -13,3 +13,8 @@ init = do
   userName <- getLine
   let name = if userName == "" then defaultName else userName
   Manifest.save Manifest.File{Manifest.name, Manifest.packages = []}
+
+add :: [Text] -> IO ()
+add packages = do
+  file <- Manifest.read
+  Manifest.save file{Manifest.packages = sort $ file.packages ++ packages}
