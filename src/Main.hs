@@ -11,5 +11,5 @@ main = do
   opts <- execParser Cmd.optsParser
   case opts.cmd of
     Cmd.Init -> Handle.init
-    (Cmd.Add packages) -> putTextLn $ "Adding packages: " <> intercalate ", " packages
+    (Cmd.Add packages) -> Handle.add packages
     (Cmd.Remove packages) -> putTextLn $ "Removing packages: " <> intercalate ", " packages
