@@ -1,0 +1,7 @@
+{
+  "name": "r-pm-project",
+  "packages": [
+    "dplyr",
+    "purrr"
+  ]
+}
