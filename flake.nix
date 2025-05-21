@@ -33,6 +33,15 @@
           packages = with pkgs; [just];
         };
       };
-      flake.imports = [./templates];
+      flake = {
+        outputs = {self}: {
+          templates = {
+            default = {
+              path = ./templates/app;
+              description = "R Package Manager application";
+            };
+          };
+        };
+      };
     };
 }
