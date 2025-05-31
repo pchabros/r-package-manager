@@ -4,6 +4,7 @@ import Data.Text (intercalate)
 import Manifest qualified
 import System.Directory (getCurrentDirectory)
 import System.FilePath (takeBaseName)
+import System.Process (callCommand)
 import Prelude hiding (intercalate)
 
 init :: IO ()
@@ -12,9 +13,11 @@ init = do
   defaultName <- toText . takeBaseName <$> getCurrentDirectory
   putText $ "Project name (default: " <> defaultName <> "): "
   hFlush stdout
-  userName <- getLine
-  let name = if userName == "" then defaultName else userName
-  Manifest.save Manifest.File{Manifest.name, Manifest.packages = []}
+  enteredName <- getLine
+  let name = if enteredName == "" then defaultName else enteredName
+  callCommand "nix flake init --template github:pchabros/r-package-manager#app"
+  file <- Manifest.read
+  Manifest.save file{Manifest.name}
 
 add :: [Text] -> IO ()
 add packages = do

@@ -46,6 +46,7 @@ common shared
     , mtl
     , optics-core
     , optparse-applicative
+    , process
     , profunctors
     , relude        >=1.0
     , shower
