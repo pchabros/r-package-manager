@@ -18,20 +18,17 @@
         config,
         ...
       }: {
-        haskellProjects.default = {
-          autoWire = ["apps" "checks"];
-        };
+        haskellProjects.default.autoWire = ["packages" "checks"];
+        packages.default = self'.packages.r-package-manager;
         devShells.default = pkgs.mkShell {
           inputsFrom = [config.haskellProjects.default.outputs.devShell];
           packages = with pkgs; [just];
         };
       };
-      flake = {
-        templates = {
-          app = {
-            path = ./templates/app;
-            description = "R Package Manager application";
-          };
+      flake.templates = {
+        app = {
+          path = ./templates/app;
+          description = "R Package Manager application";
         };
       };
     };
