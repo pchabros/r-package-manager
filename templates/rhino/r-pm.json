@@ -1,0 +1,25 @@
+{
+  "name": "rhino-app",
+  "packages": [
+    "base64enc",
+    "box",
+    "checkmate",
+    "countrycode",
+    "data_table",
+    "dplyr",
+    "fst",
+    "glue",
+    "htmlwidgets",
+    "leaflet",
+    "logger",
+    "magrittr",
+    "plotly",
+    "purrr",
+    "rhino",
+    "sf",
+    "shiny",
+    "shiny_semantic",
+    "stringr",
+    "waiter"
+  ]
+}

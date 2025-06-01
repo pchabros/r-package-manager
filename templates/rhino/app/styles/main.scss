@@ -1,0 +1,32 @@
+@import "about_section";
+
+.load-text {
+  color: black;
+  font-family: "Proxima Nova", sans-serif;
+  font-size: xx-large;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.textpoint text {
+  font-size: calc(4px + (16 - 4) * ((100vw - 300px) / (2400 - 300))) !important;
+}
+
+.title-section {
+  display: flex;
+  justify-content: space-between;
+
+  i {
+    color: #fc6;
+    background-color: white;
+    box-shadow: none;
+  }
+}
+
+.info {
+  cursor: pointer;
+  font-size: 1.5em;
+  color: #fc6;
+  float: right;
+  box-shadow: none;
+}
