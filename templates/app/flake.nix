@@ -13,12 +13,13 @@
       ];
       perSystem = {pkgs, ...}: let
         inherit (pkgs) lib rPackages mkShell;
-        inherit (lib) importJSON;
-        rPkgs = map (pkg: rPackages.${pkg}) (importJSON ./r-pm.json).packages;
+        inherit (lib) getAttr flip importJSON;
+        packages = map (flip getAttr rPackages) (importJSON ./r-pm.json).packages;
       in {
         devShells.default = mkShell {
-          packages = with pkgs;
-            [R radianWrapper] ++ rPkgs;
+          packages = with pkgs; [
+            (radianWrapper.override {inherit packages;})
+          ];
         };
       };
     });
