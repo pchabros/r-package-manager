@@ -16,6 +16,7 @@ init = do
   enteredName <- getLine
   let name = if enteredName == "" then defaultName else enteredName
   callCommand "nix flake init --template github:pchabros/r-package-manager#app"
+  callCommand "direnv allow"
   file <- Manifest.read
   Manifest.save file{Manifest.name}
 
@@ -25,6 +26,7 @@ add packages = do
   Manifest.save
     file{Manifest.packages = ordNub $ sort $ file.packages ++ packages}
   putTextLn $ "Adding packages: " <> intercalate ", " packages
+  callCommand "direnv reload"
 
 remove :: [Text] -> IO ()
 remove packages = do
@@ -32,3 +34,4 @@ remove packages = do
   Manifest.save
     file{Manifest.packages = filter (`notElem` packages) file.packages}
   putTextLn $ "Removing packages: " <> intercalate ", " packages
+  callCommand "direnv reload"
