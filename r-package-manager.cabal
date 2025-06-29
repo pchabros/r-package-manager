@@ -44,6 +44,7 @@ common shared
     , directory
     , filepath
     , mtl
+    , megaparsec
     , optics-core
     , optparse-applicative
     , process
