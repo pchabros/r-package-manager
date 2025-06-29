@@ -26,6 +26,7 @@ common shared
     DeriveGeneric
     DerivingStrategies
     DerivingVia
+    DuplicateRecordFields
     LambdaCase
     MultiWayIf
     NoStarIsType
@@ -43,7 +44,9 @@ common shared
     , data-default
     , directory
     , filepath
+    , http-conduit
     , mtl
+    , megaparsec
     , optics-core
     , optparse-applicative
     , process
@@ -60,5 +63,6 @@ executable r-package-manager
     main-is:          Main.hs
     other-modules:
       , Cmd
+      , Cran
       , Handle
       , Manifest

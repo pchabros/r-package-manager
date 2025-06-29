@@ -12,9 +12,20 @@
         "x86_64-linux"
       ];
       perSystem = {pkgs, ...}: let
-        inherit (pkgs) lib rPackages mkShell;
-        inherit (lib) getAttr flip importJSON;
-        packages = map (flip getAttr rPackages) (importJSON ./r-pm.json).packages;
+        inherit (pkgs) fetchurl lib mkShell rPackages;
+        inherit (lib) importJSON mapAttrsToList;
+        packages =
+          mapAttrsToList (
+            name: data:
+              rPackages.${name}.overrideAttrs (_: {
+                inherit (data) version;
+                src = fetchurl {
+                  url = data.resolved;
+                  sha256 = data.integrity;
+                };
+              })
+          )
+          (importJSON ./r-pm-lock.json).dependencies;
       in {
         devShells.default = mkShell {
           packages = with pkgs; [
