@@ -1,6 +1,5 @@
 module Cran where
 
-import Cmd (Version, pVersion)
 import Data.Aeson (
   FromJSON (parseJSON),
   Options (fieldLabelModifier),
@@ -11,12 +10,13 @@ import Data.Aeson (
 import Data.Char (toUpper)
 import Network.HTTP.Client.Conduit (parseRequest)
 import Network.HTTP.Simple (getResponseBody, httpLBS)
+import Parsers (pVersion)
 import Text.Megaparsec (parseMaybe)
+import Types (Version)
 
 newtype PackageData = PackageData {version :: Text}
   deriving stock (Generic, Show)
 
--- utils.hs
 capitalize :: String -> String
 capitalize "" = ""
 capitalize (c : cs) = toUpper c : cs

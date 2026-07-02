@@ -66,3 +66,5 @@ executable r-package-manager
       , Cran
       , Handle
       , Manifest
+      , Parsers
+      , Types

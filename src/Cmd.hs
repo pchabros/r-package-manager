@@ -16,26 +16,13 @@ import Options.Applicative (
   progDesc,
   subparser,
  )
-import Text.Megaparsec (Parsec, parseMaybe)
-import Text.Megaparsec.Char (alphaNumChar, char, numberChar)
-import Text.Read (read)
+import Parsers (pPackage)
+import Text.Megaparsec (parseMaybe)
+import Types (PackageInput (..))
 
 newtype Opts = Opts {cmd :: Cmd}
 
 data Cmd = Init | Add [PackageInput] | Remove [PackageInput]
-
-data PackageInput = PackageInput {name :: Text, version :: Maybe Version}
-data Package = Package {name :: Text, version :: Version} -- TODO: refactor: move to different file
-
-data Version = Version
-  { major :: Int
-  , minor :: Int
-  , patch :: Int
-  }
-  deriving stock (Eq)
-
-formatVersion :: Version -> Text
-formatVersion (Version major minor patch) = show major <> "." <> show minor <> "." <> show patch
 
 initCmd :: Mod CommandFields Cmd
 initCmd = command "init" (info (pure Init) (progDesc "Init r-package-manager project"))
@@ -44,24 +31,6 @@ packagesParser :: Parser [PackageInput]
 packagesParser = some (argument pkg (metavar "PACKAGES"))
  where
   pkg = maybeReader $ parseMaybe pPackage
-
-type MParser = Parsec Void String
-
-pNumber :: MParser Int
-pNumber = read <$> many numberChar
-
-pVersion :: MParser Version
-pVersion =
-  Version
-    <$> pNumber
-    <*> (char '.' *> pNumber)
-    <*> (char '.' *> pNumber)
-
-pPackage :: MParser PackageInput
-pPackage =
-  PackageInput
-    <$> (toText <$> many (alphaNumChar <|> char '.'))
-    <*> optional (char '@' *> pVersion)
 
 addOpts :: Parser Cmd
 addOpts = Add <$> packagesParser

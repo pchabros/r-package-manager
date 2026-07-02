@@ -1,6 +1,5 @@
 module Manifest where
 
-import Cmd (Package (..), formatVersion)
 import Cran (packageLatestVersion)
 import Data.Aeson (ToJSON, decode)
 import Data.Aeson.Encode.Pretty (
@@ -9,25 +8,85 @@ import Data.Aeson.Encode.Pretty (
   defConfig,
   encodePretty',
  )
-import Data.Aeson.Types (FromJSON)
 import Data.ByteString.Lazy (LazyByteString)
 import Data.Map.Strict qualified as Map
 import Data.Text (strip)
 import System.Process (proc, readCreateProcess)
+import Types (
+  LockDependency (..),
+  LockFile (..),
+  ManifestFile (..),
+  Package (..),
+  PackageInput (..),
+  Packages,
+  Version (..),
+ )
+import Types qualified as M (ManifestFile (name))
+import Prelude hiding (writeFile)
 
-type Packages = Map Text Text
+init :: Text -> IO ()
+init name = do
+  file <- readManifest
+  writeFile manifestPath file{M.name = name}
+  lock Map.empty
 
-data ManifestFile = ManifestFile {name :: Text, packages :: Packages}
-  deriving stock (Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+add :: [PackageInput] -> IO ()
+add packages = do
+  filledPackages <- mapM fillLatestVersion packages
+  file <- readManifest
+  let newPackages = Map.union file.packages (entries filledPackages)
+  writeFile manifestPath file{packages = newPackages}
+  lock newPackages
 
-newtype LockFile = LockFile {dependencies :: Map Text LockDependency}
-  deriving stock (Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+remove :: [PackageInput] -> IO ()
+remove packages = do
+  file <- readManifest
+  let newPackages = Map.filterWithKey (\p _ -> p `notElem` ((.name) <$> packages)) file.packages
+  writeFile manifestPath file{packages = newPackages}
+  lock newPackages
 
-data LockDependency = LockDependency {version :: Text, resolved :: Text, integrity :: Text}
-  deriving stock (Show, Generic)
-  deriving anyclass (ToJSON, FromJSON)
+lock :: Packages -> IO ()
+lock packages = do
+  dependencies <- sequence $ Map.mapWithKey lock' packages
+  let file = LockFile{dependencies}
+  writeFile lockPath file
+ where
+  lock' pname version = do
+    latest <- packageLatestVersion pname
+    let isLatest = formatVersion latest == version
+    let url = packageUrl isLatest pname version
+    hash <- processStdout "nix-prefetch-url" ["--type", "sha256", url]
+    return LockDependency{version, resolved = url, integrity = hash}
+
+processStdout :: Text -> [Text] -> IO Text
+processStdout cmd args = do
+  out <- readCreateProcess (proc (toString cmd) (map toString args)) ""
+  return $ strip $ toText out
+
+manifestPath :: FilePath
+manifestPath = "r-pm.json"
+
+lockPath :: FilePath
+lockPath = "r-pm-lock.json"
+
+writeFile :: (ToJSON a) => FilePath -> a -> IO ()
+writeFile path file = writeFileLBS path $ encode file
+
+readManifest :: IO ManifestFile
+readManifest = do
+  json <- readFileLBS manifestPath
+  case decode json of
+    (Just file) -> pure file
+    Nothing -> error "Malformed manifest file"
+
+fillLatestVersion :: PackageInput -> IO Package
+fillLatestVersion PackageInput{name, version = Nothing} = do
+  version <- packageLatestVersion name
+  return Package{name, version = version}
+fillLatestVersion PackageInput{name, version = Just version} = return Package{name, version}
+
+formatVersion :: Version -> Text
+formatVersion (Version major minor patch) = show major <> "." <> show minor <> "." <> show patch
 
 entries :: [Package] -> Packages
 entries ps =
@@ -35,11 +94,6 @@ entries ps =
 
 encode :: (ToJSON a) => a -> LazyByteString
 encode = encodePretty' defConfig{confIndent = Spaces 2}
-
-processStdout :: Text -> [Text] -> IO Text
-processStdout cmd args = do
-  out <- readCreateProcess (proc (toString cmd) (map toString args)) ""
-  return $ strip $ toText out
 
 packageUrl :: Bool -> Text -> Text -> Text
 packageUrl isLatest name version =
@@ -49,33 +103,3 @@ packageUrl isLatest name version =
     <> "_"
     <> version
     <> ".tar.gz"
-
-manifestPath :: FilePath
-manifestPath = "r-pm.json"
-
-lockPath :: FilePath
-lockPath = "r-pm-lock.json"
-
-save :: ManifestFile -> IO ()
-save file = writeFileLBS manifestPath $ encode file
-
-read :: IO ManifestFile
-read = do
-  json <- readFileLBS manifestPath
-  case decode json of
-    (Just file) -> pure file
-    Nothing -> error "Malformed manifest file"
-
-lock :: Packages -> IO ()
-lock packages = do
-  dependencies <- sequence $ Map.mapWithKey makeLockDep packages
-  let file = LockFile{dependencies}
-  writeFileLBS lockPath $ encode file
-
-makeLockDep :: Text -> Text -> IO LockDependency
-makeLockDep pname version = do
-  latest <- packageLatestVersion pname
-  let isLatest = formatVersion latest == version
-  let url = packageUrl isLatest pname version
-  hash <- processStdout "nix-prefetch-url" ["--type", "sha256", url]
-  return LockDependency{version, resolved = url, integrity = hash}
