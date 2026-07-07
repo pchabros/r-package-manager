@@ -1,22 +1,29 @@
 module Handle where
 
 import Data.Text (intercalate)
+import Input qualified as Inp
 import Manifest qualified
+import Nixpkgs (rVersions)
 import System.Directory (getCurrentDirectory)
 import System.FilePath (takeBaseName)
 import System.Process (callCommand)
-import Types (PackageInput (name))
+import Text.Megaparsec (parseMaybe)
+import Types (PackageInput (name), pVersion)
 import Prelude hiding (intercalate)
 
 init :: IO ()
 init = do
   putTextLn "Initializing R Package Manager project"
   defaultName <- toText . takeBaseName <$> getCurrentDirectory
-  putText $ "Project name (default: " <> defaultName <> "): "
-  hFlush stdout
-  enteredName <- getLine
+  enteredName <- Inp.text $ "Project name (default: " <> defaultName <> "): "
+  let name = if enteredName == "" then defaultName else enteredName
+  rVersionRaw <- Inp.select "R version" =<< rVersions
+  rVersion <- case parseMaybe pVersion (toString rVersionRaw) of
+    Just v -> return v
+    Nothing -> error $ "Invalid R version: " <> rVersionRaw
+  Manifest.init name rVersion
   callCommand "nix flake init --template github:pchabros/r-package-manager#app"
-  Manifest.init (if enteredName == "" then defaultName else enteredName)
+  callCommand "git init"
   callCommand "git add ."
   callCommand "direnv allow"
 

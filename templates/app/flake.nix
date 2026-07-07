@@ -11,24 +11,35 @@
         "x86_64-darwin"
         "x86_64-linux"
       ];
-      perSystem = {pkgs, ...}: let
-        inherit (pkgs) fetchurl lib mkShell rPackages;
-        inherit (lib) importJSON mapAttrsToList;
+      perSystem = {
+        system,
+        pkgs,
+        ...
+      }: let
+        inherit (pkgs.lib) importJSON mapAttrsToList;
+
+        lock = importJSON ./r-pm-lock.json;
+        pinned-pkgs = import (fetchTarball {
+          url = lock.nixpkgs.resolved;
+          sha256 = lock.nixpkgs.integrity;
+        }) {inherit system;};
+
+        inherit (pinned-pkgs) fetchurl mkShell rPackages;
+
         packages =
           mapAttrsToList (
             name: data:
               rPackages.${name}.overrideAttrs (_: {
-                inherit (data) version;
                 src = fetchurl {
                   url = data.resolved;
                   sha256 = data.integrity;
                 };
               })
           )
-          (importJSON ./r-pm-lock.json).dependencies;
+          lock.dependencies;
       in {
         devShells.default = mkShell {
-          packages = with pkgs; [
+          packages = with pinned-pkgs; [
             (radianWrapper.override {inherit packages;})
           ];
         };

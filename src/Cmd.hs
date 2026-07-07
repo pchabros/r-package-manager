@@ -16,9 +16,8 @@ import Options.Applicative (
   progDesc,
   subparser,
  )
-import Parsers (pPackage)
 import Text.Megaparsec (parseMaybe)
-import Types (PackageInput (..))
+import Types (PackageInput (..), pPackage)
 
 newtype Opts = Opts {cmd :: Cmd}
 
